@@ -1,0 +1,38 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/rabbit
+           http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <rabbit:connection-factory id="connectionFactory" host="192.168.198.128" username="hxk" password="hxk" port="5672"  virtual-host="/" channel-cache-size="50" />
+
+    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory" retry-template="retryTemplate"/>
+
+    <!--重试策略-->
+    <bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+        <property name="backOffPolicy">
+            <bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+                <!--第一次尝试间隔时长-->
+                <property name="initialInterval" value="1000" />
+                <!--之后每次间隔时长倍数增长,比如这个配置是1,2,4秒一共三次的尝试重试-->
+                <property name="multiplier" value="2" />
+                <!--最大的重试间隔-->
+                <property name="maxInterval" value="10000" />
+            </bean>
+        </property>
+        <!--重试策略-->
+        <property name="retryPolicy">
+            <bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+                <!--最多尝试3次-->
+                <property name="maxAttempts" value="3" />
+            </bean>
+        </property>
+    </bean>
+
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <rabbit:queue name="xmlQueue"/>
+
+</beans>

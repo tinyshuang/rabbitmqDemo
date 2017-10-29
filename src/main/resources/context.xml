@@ -1,0 +1,51 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/rabbit
+    http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd" >
+
+    <description>rabbitmq 连接服务配置</description>
+    <!-- 连接配置 -->
+    <rabbit:connection-factory id="connectionFactory" host="192.168.198.128" username="hxk" password="hxk" port="5672"  virtual-host="/"/>
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+
+    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory"
+                     exchange="myExchange" routing-key="foo.bar"/>
+
+    <rabbit:admin connection-factory="connectionFactory" />
+
+    <rabbit:queue name="myQueue" />
+
+    <rabbit:topic-exchange name="myExchange">
+        <rabbit:bindings>
+            <rabbit:binding queue="myQueue" pattern="foo.*" />
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+    <bean id="foo" class="springAmqp.SpringWayLister" />
+
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <rabbit:listener ref="foo" method="listen" queue-names="myQueue" />
+    </rabbit:listener-container>
+
+   <!-- &lt;!&ndash; spring template声明&ndash;&gt;
+    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory" exchange="springExchange" routing-key="foo.bar" />
+
+    <rabbit:queue name="springQueue" />
+
+    <rabbit:topic-exchange name="springExchange">
+        <rabbit:bindings>
+            <rabbit:binding queue="springQueue" pattern="foo.*" />
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+    <bean id="foo" class="springAmqp.SpringWayLister" />
+
+    <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto" prefetch="1">
+        <rabbit:listener ref="foo" method="listen" queue-names="springQueue" />
+    </rabbit:listener-container>
+-->
+</beans>

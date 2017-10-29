@@ -50,3 +50,34 @@ exchange类型区别
 
         * (star) can substitute for exactly one word.
         # (hash) can substitute for zero or more words.
+        
+        
+Spring-AMQP        
+默认情况下CachingConnectionFactory的cache不是一个限制数,而是连接池的一个最小链接数...但是当属性channelCheckoutTimeout值大于0时,channelCacheSize就是一个限制链接数的值,同时它还会监听此时的链接时间,如果超过会抛出AmqpTimeoutException异常
+    
+    It is important to understand that the cache size is (by default) not a limit, but merely the number of channels that can be cached. With a cache size of, say, 10, any number of channels can actually be in use. If more than 10 channels are being used and they are all returned to the cache, 10 will go in the cache; the remainder will be physically closed.
+    
+    Starting with version 1.4.2, the CachingConnectionFactory has a property channelCheckoutTimeout. When this property is greater than zero, the channelCacheSize becomes a limit on the number of channels that can be created on a connection. If the limit is reached, calling threads will block until a channel is available or this timeout is reached, in which case a AmqpTimeoutException is thrown.
+    
+    
+connectionLimit限制最大链接数
+
+
+AMQP的cache格式分为CHANNEL与CONNECTION,rabbitmq默认是基于渠道的,而链接数的模式在某些HA负载均衡会有用..
+
+
+集群模式下的工厂配置 :
+
+    <bean id="connectionFactory"
+          class="org.springframework.amqp.rabbit.connection.SimpleRoutingConnectionFactory">
+        <property name="targetConnectionFactories">
+            <map>
+                <entry key="#{connectionFactory1.virtualHost}" ref="connectionFactory1"/>
+                <entry key="#{connectionFactory2.virtualHost}" ref="connectionFactory2"/>
+            </map>
+        </property>
+    </bean>
+    
+    <rabbit:template id="template" connection-factory="connectionFactory" />
+
+
